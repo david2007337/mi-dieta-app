@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PlanNutri IA</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Asistente de dieta inteligente</p>
+          <h1>PlanNutri IA</h1>
+          <p class="hero-copy">Organiza tus comidas, recetas, lista de la compra y tus ideas de menú para hasta 4 semanas.</p>
+        </div>
+        <button id="resetBtn" class="secondary-btn">Reiniciar ejemplo</button>
+      </header>
+
+      <main class="content-grid">
+        <section class="card planner-card">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Planificador</p>
+              <h2>Próximas 4 semanas</h2>
+            </div>
+            <div id="weekTabs" class="week-tabs"></div>
+          </div>
+          <div id="dayGrid" class="day-grid"></div>
+        </section>
+
+        <section class="card editor-card">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Detalle del día</p>
+              <h2 id="selectedDateLabel">Selecciona un día</h2>
+            </div>
+          </div>
+
+          <form id="dayForm" class="day-form">
+            <label>
+              Desayuno
+              <select id="breakfastInput"></select>
+            </label>
+
+            <label>
+              Merienda
+              <select id="snackInput"></select>
+            </label>
+
+            <div class="meal-block">
+              <h3>Comida</h3>
+              <label>
+                Receta
+                <select id="lunchRecipeInput"></select>
+              </label>
+              <div class="macros-grid">
+                <label>Pasta (g) <input id="lunchPasta" type="number" min="0" /></label>
+                <label>Arroz (g) <input id="lunchRice" type="number" min="0" /></label>
+                <label>Legumbres (g) <input id="lunchLegumes" type="number" min="0" /></label>
+                <label>Quinoa (g) <input id="lunchQuinoa" type="number" min="0" /></label>
+                <label>Verdura/ensalada (g) <input id="lunchVegetables" type="number" min="0" /></label>
+                <label>Carne (g) <input id="lunchMeat" type="number" min="0" /></label>
+              </div>
+            </div>
+
+            <div class="meal-block">
+              <h3>Cena</h3>
+              <label>
+                Receta
+                <select id="dinnerRecipeInput"></select>
+              </label>
+              <div class="macros-grid">
+                <label>Pasta (g) <input id="dinnerPasta" type="number" min="0" /></label>
+                <label>Arroz (g) <input id="dinnerRice" type="number" min="0" /></label>
+                <label>Legumbres (g) <input id="dinnerLegumes" type="number" min="0" /></label>
+                <label>Quinoa (g) <input id="dinnerQuinoa" type="number" min="0" /></label>
+                <label>Verdura/ensalada (g) <input id="dinnerVegetables" type="number" min="0" /></label>
+                <label>Carne (g) <input id="dinnerMeat" type="number" min="0" /></label>
+              </div>
+            </div>
+
+            <label>
+              Postre
+              <input id="dessertInput" type="text" placeholder="Ej. Yogur con fruta" />
+            </label>
+
+            <label>
+              Notas
+              <textarea id="notesInput" rows="3" placeholder="Ej. Mejor preparar con antelación"></textarea>
+            </label>
+
+            <button type="submit" class="primary-btn">Guardar día</button>
+          </form>
+        </section>
+      </main>
+
+      <section class="secondary-grid">
+        <section class="card">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">IA de recetas</p>
+              <h2>Sugerencias inteligentes</h2>
+            </div>
+          </div>
+          <div class="ai-panel">
+            <p>Introduce los gramos de cada grupo y deja que la app proponga ideas de recetas.</p>
+            <div id="aiSuggestions" class="suggestions-list"></div>
+            <button id="generateIdeasBtn" class="secondary-btn">Generar ideas</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Recetario</p>
+              <h2>Recetas guardadas</h2>
+            </div>
+          </div>
+          <form id="recipeForm" class="recipe-form">
+            <input id="recipeName" type="text" placeholder="Nombre de la receta" required />
+            <input id="recipeCategory" type="text" placeholder="Categoría" required />
+            <textarea id="recipeIngredients" rows="3" placeholder="Ingredientes" required></textarea>
+            <textarea id="recipeSteps" rows="3" placeholder="Pasos" required></textarea>
+            <button type="submit" class="primary-btn">Añadir receta</button>
+          </form>
+          <div id="recipeList" class="recipe-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Compra</p>
+              <h2>Lista automática</h2>
+            </div>
+          </div>
+          <div id="shoppingList" class="shopping-list"></div>
+        </section>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
