@@ -30,8 +30,8 @@ button, input, select, textarea {
 }
 
 .hero {
-  background: linear-gradient(90deg, rgba(77, 209, 181, 0.2), rgba(107, 140, 255, 0.2));
-  border: 1px solid rgba(255,255,255,0.12);
+  background: linear-gradient(135deg, rgba(77, 209, 181, 0.22), rgba(107, 140, 255, 0.22));
+  border: 1px solid rgba(255,255,255,0.16);
   border-radius: 24px;
   padding: 24px;
   display: flex;
@@ -39,12 +39,47 @@ button, input, select, textarea {
   align-items: center;
   gap: 16px;
   margin-bottom: 20px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.25);
 }
 
 .hero-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.utility-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.beta-badge, .save-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+}
+
+.beta-badge {
+  background: rgba(255,255,255,0.12);
+  color: var(--text);
+}
+
+.save-status {
+  background: rgba(77, 209, 181, 0.16);
+  color: var(--accent);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .nav-select {
@@ -84,7 +119,7 @@ button, input, select, textarea {
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 20px;
   padding: 18px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.28);
 }
 
 .section-header {
@@ -93,6 +128,10 @@ button, input, select, textarea {
   align-items: center;
   gap: 16px;
   margin-bottom: 14px;
+}
+
+.section-header.compact {
+  margin-bottom: 10px;
 }
 
 .week-selector {
@@ -127,21 +166,29 @@ button, input, select, textarea {
   gap: 12px;
 }
 
-.preset-block {
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ingredient-editor {
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 14px;
-  padding: 10px;
+  padding: 12px;
   background: rgba(255,255,255,0.03);
 }
 
-.preset-label {
-  margin-bottom: 6px;
+.ingredient-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.inline-actions {
-  display: flex;
+.ingredient-row {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
   gap: 8px;
-  align-items: center;
 }
 
 .inline-check {
@@ -193,6 +240,15 @@ input, select, textarea {
 
 .primary-btn, .secondary-btn, .apply-btn {
   padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.primary-btn:hover, .secondary-btn:hover, .apply-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 
 .primary-btn {
@@ -202,8 +258,9 @@ input, select, textarea {
 }
 
 .secondary-btn {
-  background: var(--panel-2);
+  background: rgba(255,255,255,0.06);
   color: var(--text);
+  border-color: rgba(255,255,255,0.08);
 }
 
 .meal-block {
@@ -221,10 +278,21 @@ input, select, textarea {
   margin: 0;
 }
 
-.macros-grid {
+.params-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
+}
+
+.param-group {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,0.03);
+}
+
+.param-group h3 {
+  margin: 0 0 10px;
 }
 
 .filter-select {
@@ -243,6 +311,14 @@ input, select, textarea {
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 14px;
   padding: 12px;
+}
+
+.idea-target {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--muted);
 }
 
 .recipe-status {
@@ -351,12 +427,15 @@ input, select, textarea {
 
 @media (max-width: 1100px) {
   .content-grid { grid-template-columns: 1fr; }
+  .params-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 700px) {
   .hero { flex-direction: column; align-items: flex-start; }
   .hero-actions { width: 100%; flex-direction: column; align-items: flex-start; }
+  .utility-stack { align-items: flex-start; }
+  .header-actions { width: 100%; }
   .day-grid { grid-template-columns: 1fr; }
-  .macros-grid { grid-template-columns: 1fr; }
+  .form-row, .ingredient-row { grid-template-columns: 1fr; }
   .overview-header { flex-direction: column; align-items: flex-start; }
 }
