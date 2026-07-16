@@ -144,6 +144,12 @@ button, input, select, textarea {
   align-items: center;
 }
 
+.inline-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .mini-btn {
   padding: 8px 10px;
   border: 0;
@@ -255,6 +261,94 @@ input, select, textarea {
 
 .shopping-item strong { display: block; margin-bottom: 4px; }
 
+.overview-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.overview-chip {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(77, 209, 181, 0.16);
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.overview-list {
+  display: grid;
+  gap: 14px;
+}
+
+.overview-day-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.overview-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.overview-day-header h3 {
+  margin: 0;
+}
+
+.overview-day-badge {
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.overview-meal {
+  padding: 10px 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.overview-meal:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.overview-meal strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.overview-meal p, .overview-meal ul {
+  margin: 0;
+  color: var(--muted);
+}
+
+.recipe-ingredients-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 8px 0 10px;
+  list-style: none;
+}
+
+.ingredient-pill {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(107, 140, 255, 0.16);
+  color: var(--text);
+  font-size: 0.84rem;
+}
+
 @media (max-width: 1100px) {
   .content-grid { grid-template-columns: 1fr; }
 }
@@ -264,4 +358,5 @@ input, select, textarea {
   .hero-actions { width: 100%; flex-direction: column; align-items: flex-start; }
   .day-grid { grid-template-columns: 1fr; }
   .macros-grid { grid-template-columns: 1fr; }
+  .overview-header { flex-direction: column; align-items: flex-start; }
 }

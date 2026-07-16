@@ -18,7 +18,8 @@
           <label class="nav-select">
             <span>Pantalla</span>
             <select id="viewSelector">
-              <option value="home">Inici</option>
+              <option value="overview">Inici</option>
+              <option value="home">Planificador</option>
               <option value="recipes">Receptes</option>
               <option value="shopping">Llista de la compra</option>
               <option value="params">Paràmetres</option>
@@ -28,7 +29,22 @@
         </div>
       </header>
 
-      <section id="homeView" class="view-section">
+      <section id="overviewView" class="view-section">
+        <div class="overview-shell">
+          <div class="overview-header">
+            <div>
+              <p class="eyebrow">Inici</p>
+              <h2>El que menjaràs aquesta setmana</h2>
+            </div>
+            <div class="overview-meta">
+              <span id="overviewWeekLabel" class="overview-chip"></span>
+            </div>
+          </div>
+          <div id="overviewList" class="overview-list"></div>
+        </div>
+      </section>
+
+      <section id="homeView" class="view-section hidden">
         <div class="content-grid">
           <section class="card planner-card">
             <div class="section-header">
@@ -57,8 +73,11 @@
               <p id="breakfastDescription" class="helper-text"></p>
 
               <div class="meal-block">
-                <h3>Merienda</h3>
-                <p class="helper-text">Sempre és la mateixa: 1 iogurt natural, 30 g d'avena, 1 fruita i 10 ametlles.</p>
+                <h3>Berenar</h3>
+                <label class="inline-check">
+                  <input id="snackEnabled" type="checkbox" checked />
+                  <span id="snackText">1 iogurt natural, 30 g d'avena, 1 fruita i 10 ametlles</span>
+                </label>
               </div>
 
               <div class="meal-block">
@@ -78,11 +97,6 @@
                 </label>
                 <p class="helper-text">S'utilitza la recepta seleccionada i els paràmetres de la pantalla de Paràmetres.</p>
               </div>
-
-              <label>
-                Postres
-                <input id="dessertInput" type="text" placeholder="Ex. iogurt amb fruita" />
-              </label>
 
               <label>
                 Notes
@@ -170,8 +184,8 @@
                 <label>Base (pasta/arròs/llenties/quinoa) (g) <input id="paramBase" type="number" min="0" /></label>
                 <label>Verdura/amanida (g) <input id="paramVegetables" type="number" min="0" /></label>
                 <label>Carne (g) <input id="paramMeat" type="number" min="0" /></label>
-                <label>Pa per al descompte (g) <input id="paramBreadGrams" type="number" min="0" /></label>
-                <label>Complement <input id="paramComplement" type="text" placeholder="Ex. salsa de tomàquet" /></label>
+                <label>Complement de dinar <input id="paramLunchComplement" type="text" placeholder="Ex. salsa de tomàquet" /></label>
+                <label>Complement de sopar <input id="paramDinnerComplement" type="text" placeholder="Ex. salsa de tomàquet" /></label>
               </div>
               <button type="submit" class="primary-btn">Guardar paràmetres</button>
             </form>

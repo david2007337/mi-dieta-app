@@ -1,13 +1,11 @@
 const STORAGE_KEY = 'planNutriStateV1';
 
 const breakfastOptions = [
-  'Esmorzar típic',
-  'Esmorzar esportiu'
+  { value: 'Esmorzar típic', description: '100 g de pa amb pernil dolç o salat i formatge, 1 got de llet semiseca.' },
+  { value: 'Esmorzar esportiu', description: 'Igual que l\'anterior però amb una fruita.' }
 ];
 
-const snackOptions = [
-  '1 iogurt natural, 30 g d\'avena, 1 fruita i 10 ametlles'
-];
+const snackFixedText = '1 iogurt natural, 30 g d\'avena, 1 fruita i 10 ametlles';
 
 const baseRecipes = [
   {
@@ -79,7 +77,7 @@ const baseRecipes = [
 const defaultState = {
   selectedDate: null,
   weekIndex: 0,
-  activeView: 'home',
+  activeView: 'overview',
   recipeFilter: 'all',
   plan: [],
   recipes: [],
@@ -87,12 +85,8 @@ const defaultState = {
     base: 120,
     vegetables: 200,
     meat: 140,
-    breadGrams: 100,
-    complement: 'salsa de tomate'
-  },
-  mealPresets: {
-    breakfast: [...breakfastOptions],
-    snack: [...snackOptions]
+    lunchComplement: 'salsa de tomàquet',
+    dinnerComplement: 'salsa de tomàquet'
   }
 };
 
@@ -164,10 +158,10 @@ function buildInitialPlan() {
     return {
       date: date.toISOString(),
       breakfast: '',
-      snack: '',
+      snack: snackFixedText,
+      snackEnabled: true,
       lunchRecipe: '',
       dinnerRecipe: '',
-      dessert: '',
       notes: ''
     };
   });
@@ -182,9 +176,34 @@ function getEntryByDate(dateString) {
   return state.plan.find((entry) => entry.date === dateString);
 }
 
+function getWeekStartDate() {
+  const base = state.selectedDate ? new Date(state.selectedDate) : new Date();
+  base.setHours(0, 0, 0, 0);
+  const day = base.getDay();
+  const diff = (day + 6) % 7;
+  const start = new Date(base);
+  start.setDate(base.getDate() - diff);
+  start.setDate(start.getDate() + state.weekIndex * 7);
+  return start;
+}
+
 function getWeekEntries() {
-  const start = state.weekIndex * 7;
-  return state.plan.slice(start, start + 7);
+  const start = getWeekStartDate();
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+
+  return state.plan.filter((entry) => {
+    const entryDate = new Date(entry.date);
+    entryDate.setHours(0, 0, 0, 0);
+    return entryDate >= start && entryDate <= end;
+  });
+}
+
+function formatWeekRangeLabel() {
+  const start = getWeekStartDate();
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return `${start.toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' })} – ${end.toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' })}`;
 }
 
 function renderWeekSelector() {
@@ -198,6 +217,62 @@ function renderWeekSelector() {
     container.appendChild(option);
   }
   container.value = state.weekIndex;
+}
+
+function renderOverview() {
+  const container = document.getElementById('overviewList');
+  const label = document.getElementById('overviewWeekLabel');
+  if (!container) return;
+
+  const weekEntries = getWeekEntries();
+  container.innerHTML = '';
+
+  if (label) {
+    label.textContent = `Setmana ${state.weekIndex + 1} · ${formatWeekRangeLabel()}`;
+  }
+
+  if (!weekEntries.length) {
+    container.innerHTML = '<p>Encara no hi ha res per aquesta setmana.</p>';
+    return;
+  }
+
+  weekEntries.forEach((entry) => {
+    const dayCard = document.createElement('article');
+    dayCard.className = 'overview-day-card';
+
+    const breakfastText = entry.breakfast ? `${entry.breakfast}: ${getBreakfastDescription(entry.breakfast)}` : 'Sense definir';
+    const snackText = entry.snackEnabled === false ? 'Sense berenar' : (entry.snack || snackFixedText);
+
+    const lunchRecipe = state.recipes.find((recipe) => recipe.name === entry.lunchRecipe);
+    const dinnerRecipe = state.recipes.find((recipe) => recipe.name === entry.dinnerRecipe);
+
+    dayCard.innerHTML = `
+      <div class="overview-day-header">
+        <h3>${formatDateLabel(entry.date)}</h3>
+        <span class="overview-day-badge">${new Date(entry.date).toLocaleDateString('ca-ES', { weekday: 'long' })}</span>
+      </div>
+      <div class="overview-meal">
+        <strong>Esmorzar</strong>
+        <p>${breakfastText}</p>
+      </div>
+      <div class="overview-meal">
+        <strong>Berenar</strong>
+        <p>${snackText}</p>
+      </div>
+      <div class="overview-meal">
+        <strong>Dinar</strong>
+        <p>${entry.lunchRecipe || 'Sense definir'}</p>
+        ${lunchRecipe ? `<ul class="recipe-ingredients-list">${lunchRecipe.ingredients.map((ingredient) => `<li class="ingredient-pill">${formatIngredient(ingredient)}</li>`).join('')}</ul>` : ''}
+      </div>
+      <div class="overview-meal">
+        <strong>Viena</strong>
+        <p>${entry.dinnerRecipe || 'Sense definir'}</p>
+        ${dinnerRecipe ? `<ul class="recipe-ingredients-list">${dinnerRecipe.ingredients.map((ingredient) => `<li class="ingredient-pill">${formatIngredient(ingredient)}</li>`).join('')}</ul>` : ''}
+      </div>
+    `;
+
+    container.appendChild(dayCard);
+  });
 }
 
 function renderDayGrid() {
@@ -215,7 +290,7 @@ function renderDayGrid() {
     card.innerHTML = `
       <h3>${formatDateLabel(entry.date)}</h3>
       <p><strong>Esmorzar:</strong> ${entry.breakfast || 'Sense definir'}</p>
-      <p><strong>Merienda:</strong> ${entry.snack || snackOptions[0]}</p>
+      <p><strong>Berenar:</strong> ${entry.snackEnabled === false ? 'Sense' : (entry.snack || snackFixedText)}</p>
       <p><strong>Dinar:</strong> ${entry.lunchRecipe || 'Sense definir'}</p>
       <p><strong>Viena:</strong> ${entry.dinnerRecipe || 'Sense definir'}</p>
     `;
@@ -228,13 +303,13 @@ function renderDayGrid() {
   });
 }
 
-function getMealPresets(type) {
-  return (state.mealPresets?.[type] || []).filter(Boolean);
+function getBreakfastOptionsMarkup(selectedValue) {
+  return ['<option value="">Sense definir</option>', ...breakfastOptions.map((option) => `<option value="${option.value}" ${selectedValue === option.value ? 'selected' : ''}>${option.value}</option>`)].join('');
 }
 
-function buildMealSelectOptions(type, selectedValue) {
-  const values = [...new Set([...(getMealPresets(type)), selectedValue].filter(Boolean))];
-  return ['<option value="">Sin definir</option>', ...values.map((value) => `<option value="${value}" ${selectedValue === value ? 'selected' : ''}>${value}</option>`)].join('');
+function getBreakfastDescription(selectedValue) {
+  const option = breakfastOptions.find((item) => item.value === selectedValue);
+  return option ? option.description : '';
 }
 
 function populateForm() {
@@ -245,11 +320,12 @@ function populateForm() {
   const breakfastInput = document.getElementById('breakfastInput');
   const lunchRecipeInput = document.getElementById('lunchRecipeInput');
   const dinnerRecipeInput = document.getElementById('dinnerRecipeInput');
-  const snackDisplay = document.getElementById('snackDisplay');
+  const snackEnabledInput = document.getElementById('snackEnabled');
+  const breakfastDescription = document.getElementById('breakfastDescription');
 
-  breakfastInput.innerHTML = buildMealSelectOptions('breakfast', entry?.breakfast || '');
-  if (snackDisplay) {
-    snackDisplay.textContent = entry?.snack || snackOptions[0];
+  breakfastInput.innerHTML = getBreakfastOptionsMarkup(entry?.breakfast || '');
+  if (snackEnabledInput) {
+    snackEnabledInput.checked = entry?.snackEnabled !== false;
   }
 
   const recipeOptions = ['<option value="">Sin receta</option>', ...state.recipes.map((recipe) => `<option value="${recipe.name}" ${entry?.lunchRecipe === recipe.name ? 'selected' : ''}>${recipe.name}</option>`)].join('');
@@ -261,20 +337,17 @@ function populateForm() {
     return full;
   });
 
-  document.getElementById('dessertInput').value = entry?.dessert || '';
   document.getElementById('notesInput').value = entry?.notes || '';
 
   document.getElementById('paramBase').value = state.parameters.base;
   document.getElementById('paramVegetables').value = state.parameters.vegetables;
   document.getElementById('paramMeat').value = state.parameters.meat;
-  document.getElementById('paramBreadGrams').value = state.parameters.breadGrams || 100;
-  document.getElementById('paramComplement').value = state.parameters.complement || '';
+  document.getElementById('paramLunchComplement').value = state.parameters.lunchComplement || '';
+  document.getElementById('paramDinnerComplement').value = state.parameters.dinnerComplement || '';
   document.getElementById('recipeFilter').value = state.recipeFilter;
 
-  const breakfastDescription = document.getElementById('breakfastDescription');
   if (breakfastDescription) {
-    const breadGrams = Number(state.parameters.breadGrams || 0);
-    breakfastDescription.textContent = `Esmorzar típic: ${breadGrams} g de pa amb pernil dolç o salat i formatge, 1 got de llet semiseca. Esmorzar esportiu: igual que l'anterior però amb una fruita.`;
+    breakfastDescription.textContent = getBreakfastDescription(breakfastInput.value);
   }
 }
 
@@ -287,6 +360,10 @@ function categorizeIngredient(name) {
 }
 
 function getRecipeCompatibility(recipe) {
+  if (recipe.category === 'Desayuno' || recipe.category === 'Merienda') {
+    return null;
+  }
+
   const totals = { base: 0, vegetables: 0, meat: 0 };
   recipe.ingredients.forEach((ingredient) => {
     const category = categorizeIngredient(ingredient.name);
@@ -343,9 +420,11 @@ function renderRecipeList() {
     item.innerHTML = `
       <strong>${recipe.name}</strong>
       <p>${recipe.category}</p>
-      <p><strong>Ingredientes:</strong> ${recipe.ingredients.map(formatIngredient).join(', ')}</p>
+      <ul class="recipe-ingredients-list">
+        ${recipe.ingredients.map((ingredient) => `<li class="ingredient-pill">${formatIngredient(ingredient)}</li>`).join('')}
+      </ul>
       <p>${recipe.steps}</p>
-      <p class="recipe-status ${compatibility.isAdecuada ? 'good' : 'warn'}">${compatibility.isAdecuada ? 'Adaptada als paràmetres' : 'No s\'adapta del tot als paràmetres'} · ${compatibility.summary}</p>
+      ${compatibility ? `<p class="recipe-status ${compatibility.isAdecuada ? 'good' : 'warn'}">${compatibility.isAdecuada ? 'Adaptada als paràmetres' : 'No s\'adapta del tot als paràmetres'} · ${compatibility.summary}</p>` : ''}
     `;
     container.appendChild(item);
   });
@@ -365,8 +444,7 @@ function buildShoppingList() {
 
   state.plan.forEach((entry) => {
     if (entry.breakfast) add(entry.breakfast, 0, 1);
-    if (entry.snack) add(entry.snack, 0, 1);
-    if (entry.dessert) add(entry.dessert, 0, 1);
+    if (entry.snackEnabled !== false && entry.snack) add(entry.snack, 0, 1);
 
     if (entry.lunchRecipe) {
       const recipe = state.recipes.find((item) => item.name === entry.lunchRecipe);
@@ -408,33 +486,32 @@ function renderShoppingList() {
   container.appendChild(fragment);
 }
 
-function buildSuggestedRecipe(title, category, baseName, meatName) {
+function buildSuggestedRecipe(title, category, baseName, meatName, complement) {
   const baseGrams = Number(state.parameters.base || 0);
   const vegetablesGrams = Number(state.parameters.vegetables || 0);
   const meatGrams = Number(state.parameters.meat || 0);
-  const complement = state.parameters.complement || 'complemento';
+  const safeComplement = complement || 'salsa de tomàquet';
 
   const ingredients = [
     { name: baseName, grams: baseGrams },
     { name: 'verdura', grams: vegetablesGrams },
     { name: meatName, grams: meatGrams },
-    { name: complement, grams: 50 }
+    { name: safeComplement, grams: 50 }
   ];
 
   return {
     name: title,
     category,
     ingredients,
-    steps: `Prepara ${baseName} amb ${meatName} i verdures; afegeix ${complement} al final.`,
+    steps: `Prepara ${baseName} amb ${meatName} i verdures; afegeix ${safeComplement} al final.`,
     generated: true
   };
 }
 
 function generateRecipeIdeas() {
   const ideas = [
-    buildSuggestedRecipe('Pasta con tomate y pollo', 'Comida', 'pasta integral', 'pollo'),
-    buildSuggestedRecipe('Arroz de garbanzos y verduras', 'Comida', 'arroz', 'garbanzos'),
-    buildSuggestedRecipe('Quinoa bowl con carne', 'Cena', 'quinoa', 'carne magra')
+    buildSuggestedRecipe('Pasta amb tomàquet i pollastre', 'Comida', 'pasta integral', 'pollastre', state.parameters.lunchComplement || 'salsa de tomàquet'),
+    buildSuggestedRecipe('Arròs amb llenties i verdures', 'Cena', 'arròs', 'pollastre', state.parameters.dinnerComplement || 'salsa de tomàquet')
   ];
 
   const container = document.getElementById('aiSuggestions');
@@ -488,10 +565,10 @@ function bindEvents() {
     if (!entry) return;
 
     entry.breakfast = document.getElementById('breakfastInput').value;
-    entry.snack = snackOptions[0];
+    entry.snack = snackFixedText;
+    entry.snackEnabled = document.getElementById('snackEnabled').checked;
     entry.lunchRecipe = document.getElementById('lunchRecipeInput').value;
     entry.dinnerRecipe = document.getElementById('dinnerRecipeInput').value;
-    entry.dessert = document.getElementById('dessertInput').value;
     entry.notes = document.getElementById('notesInput').value;
 
     saveState();
@@ -530,14 +607,28 @@ function bindEvents() {
     renderRecipeList();
   });
 
+  document.getElementById('breakfastInput').addEventListener('change', (event) => {
+    const description = document.getElementById('breakfastDescription');
+    if (description) {
+      description.textContent = getBreakfastDescription(event.target.value);
+    }
+  });
+
+  document.getElementById('snackEnabled').addEventListener('change', (event) => {
+    const snackText = document.getElementById('snackText');
+    if (snackText) {
+      snackText.textContent = event.target.checked ? snackFixedText : 'Sense berenar';
+    }
+  });
+
   document.getElementById('paramsForm').addEventListener('submit', (event) => {
     event.preventDefault();
     state.parameters = {
       base: Number(document.getElementById('paramBase').value || 0),
       vegetables: Number(document.getElementById('paramVegetables').value || 0),
       meat: Number(document.getElementById('paramMeat').value || 0),
-      breadGrams: Number(document.getElementById('paramBreadGrams').value || 0),
-      complement: document.getElementById('paramComplement').value.trim()
+      lunchComplement: document.getElementById('paramLunchComplement').value.trim(),
+      dinnerComplement: document.getElementById('paramDinnerComplement').value.trim()
     };
     saveState();
     render();
@@ -553,6 +644,7 @@ function bindEvents() {
 }
 
 function renderView() {
+  document.getElementById('overviewView').classList.toggle('hidden', state.activeView !== 'overview');
   document.getElementById('homeView').classList.toggle('hidden', state.activeView !== 'home');
   document.getElementById('recipesView').classList.toggle('hidden', state.activeView !== 'recipes');
   document.getElementById('shoppingView').classList.toggle('hidden', state.activeView !== 'shopping');
@@ -562,6 +654,7 @@ function renderView() {
 function render() {
   renderView();
   renderWeekSelector();
+  renderOverview();
   renderDayGrid();
   populateForm();
   renderRecipeList();
