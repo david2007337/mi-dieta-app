@@ -30,7 +30,7 @@ const baseRecipes = [
     steps: 'Cocina el arroz y añade garbanzos y verduras salteadas.'
   },
   {
-    name: 'Quinoa con salmon y ensalada',
+    name: 'Quinoa con salmón y ensalada',
     category: 'Cena',
     ingredients: ['quinoa', 'salmón', 'lechuga', 'pepino', 'aguacate'],
     steps: 'Cocina la quinoa y acompaña con salmón y ensalada.'
@@ -51,16 +51,37 @@ const baseRecipes = [
     name: 'Tacos de pavo con quinoa',
     category: 'Cena',
     ingredients: ['pavo', 'quinoa', 'lechuga', 'tomate', 'aguacate'],
-    steps: ' Cocina la quinoa y rellena con pavo y verduras.'
+    steps: 'Cocina la quinoa y rellena con pavo y verduras.'
+  },
+  {
+    name: 'Avena con yogur y fruta',
+    category: 'Desayuno',
+    ingredients: ['avena', 'yogur', 'plátano', 'frutos rojos'],
+    steps: 'Mezcla la avena con yogur y añade la fruta.'
+  },
+  {
+    name: 'Tostadas con hummus y tomate',
+    category: 'Merienda',
+    ingredients: ['pan integral', 'hummus', 'tomate', 'aceite de oliva'],
+    steps: 'Tuesta el pan y añade hummus y tomate.'
   }
 ];
 
 const defaultState = {
   selectedDate: null,
   weekIndex: 0,
+  activeView: 'home',
+  recipeFilter: 'all',
   plan: [],
   recipes: baseRecipes,
-  shoppingList: []
+  parameters: {
+    pasta: 100,
+    arroz: 120,
+    legumbres: 120,
+    quinoa: 100,
+    verdura: 200,
+    carne: 140
+  }
 };
 
 let state = loadState();
@@ -79,6 +100,7 @@ function loadState() {
       ...parsed,
       plan: parsed.plan?.length ? parsed.plan : buildInitialPlan(),
       recipes: parsed.recipes?.length ? parsed.recipes : baseRecipes.slice(),
+      parameters: { ...defaultState.parameters, ...(parsed.parameters || {}) },
       selectedDate: parsed.selectedDate || (parsed.plan?.[0]?.date || null)
     };
   } catch (error) {
@@ -205,12 +227,27 @@ function populateForm() {
 
   document.getElementById('dessertInput').value = entry?.dessert || '';
   document.getElementById('notesInput').value = entry?.notes || '';
+
+  document.getElementById('paramPasta').value = state.parameters.pasta;
+  document.getElementById('paramRice').value = state.parameters.arroz;
+  document.getElementById('paramLegumes').value = state.parameters.legumbres;
+  document.getElementById('paramQuinoa').value = state.parameters.quinoa;
+  document.getElementById('paramVegetables').value = state.parameters.verdura;
+  document.getElementById('paramMeat').value = state.parameters.carne;
+  document.getElementById('recipeFilter').value = state.recipeFilter;
 }
 
 function renderRecipeList() {
   const container = document.getElementById('recipeList');
   container.innerHTML = '';
-  state.recipes.forEach((recipe) => {
+
+  const filteredRecipes = state.recipes.filter((recipe) => {
+    if (state.recipeFilter === 'all') return true;
+    const map = { breakfast: 'Desayuno', lunch: 'Comida', snack: 'Merienda', dinner: 'Cena' };
+    return recipe.category === map[state.recipeFilter];
+  });
+
+  filteredRecipes.forEach((recipe) => {
     const item = document.createElement('div');
     item.className = 'recipe-item';
     item.innerHTML = `
@@ -292,17 +329,22 @@ function generateRecipeIdeas() {
     carne: Number(document.getElementById('lunchMeat').value || 0)
   };
 
+  const baseMacros = Object.keys(macros).reduce((acc, key) => {
+    acc[key] = macros[key] || state.parameters[key === 'verdura' ? 'verdura' : key];
+    return acc;
+  }, {});
+
   const ideas = [];
-  if (macros.pasta > 0) {
-    ideas.push({ title: 'Pasta con tomate y carne magra', description: 'Una opción rápida con tomate, hierbas y proteína.' });
+  if ((baseMacros.pasta || 0) > 0) {
+    ideas.push({ title: 'Pasta con tomate y carne magra', description: 'Rápida, equilibrada y muy útil si quieres proteína y carbohidratos.' });
   }
-  if (macros.arroz > 0 && macros.legumbres > 0) {
-    ideas.push({ title: 'Arroz de garbanzos con verduras', description: 'Ideal si quieres un plato contundente y equilibrado.' });
+  if ((baseMacros.arroz || 0) > 0 && (baseMacros.legumbres || 0) > 0) {
+    ideas.push({ title: 'Arroz de garbanzos con verduras', description: 'Ideal para una comida contundente y sencilla.' });
   }
-  if (macros.quinoa > 0 && macros.carne > 0) {
-    ideas.push({ title: 'Quinoa bowl con pollo o pavo', description: 'Perfecta para una cena ligera y rica en proteínas.' });
+  if ((baseMacros.quinoa || 0) > 0 && (baseMacros.carne || 0) > 0) {
+    ideas.push({ title: 'Quinoa bowl con pollo o pavo', description: 'Perfecta si buscas un menú ligero y alto en proteína.' });
   }
-  if (macros.verdura > 0 && macros.legumbres > 0) {
+  if ((baseMacros.verdura || 0) > 0 && (baseMacros.legumbres || 0) > 0) {
     ideas.push({ title: 'Lentejas o garbanzos con ensalada', description: 'Muy buena para un menú saludable y fácil de repetir.' });
   }
   if (!ideas.length) {
@@ -335,6 +377,12 @@ function generateRecipeIdeas() {
 }
 
 function bindEvents() {
+  document.getElementById('viewSelector').addEventListener('change', (event) => {
+    state.activeView = event.target.value;
+    saveState();
+    renderView();
+  });
+
   document.getElementById('dayForm').addEventListener('submit', (event) => {
     event.preventDefault();
     const entry = getEntryByDate(state.selectedDate);
@@ -371,7 +419,7 @@ function bindEvents() {
     event.preventDefault();
     const newRecipe = {
       name: document.getElementById('recipeName').value.trim(),
-      category: document.getElementById('recipeCategory').value.trim(),
+      category: document.getElementById('recipeCategorySelect').value,
       ingredients: document.getElementById('recipeIngredients').value.split(',').map((item) => item.trim()).filter(Boolean),
       steps: document.getElementById('recipeSteps').value.trim()
     };
@@ -379,10 +427,30 @@ function bindEvents() {
     if (!newRecipe.name || !newRecipe.category || !newRecipe.ingredients.length || !newRecipe.steps) return;
 
     state.recipes.unshift(newRecipe);
-    state.recipes = state.recipes.slice(0, 8);
+    state.recipes = state.recipes.slice(0, 12);
     saveState();
     render();
     event.target.reset();
+  });
+
+  document.getElementById('recipeFilter').addEventListener('change', (event) => {
+    state.recipeFilter = event.target.value;
+    saveState();
+    renderRecipeList();
+  });
+
+  document.getElementById('paramsForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    state.parameters = {
+      pasta: Number(document.getElementById('paramPasta').value || 0),
+      arroz: Number(document.getElementById('paramRice').value || 0),
+      legumbres: Number(document.getElementById('paramLegumes').value || 0),
+      quinoa: Number(document.getElementById('paramQuinoa').value || 0),
+      verdura: Number(document.getElementById('paramVegetables').value || 0),
+      carne: Number(document.getElementById('paramMeat').value || 0)
+    };
+    saveState();
+    render();
   });
 
   document.getElementById('generateIdeasBtn').addEventListener('click', generateRecipeIdeas);
@@ -394,7 +462,15 @@ function bindEvents() {
   });
 }
 
+function renderView() {
+  document.getElementById('homeView').classList.toggle('hidden', state.activeView !== 'home');
+  document.getElementById('recipesView').classList.toggle('hidden', state.activeView !== 'recipes');
+  document.getElementById('shoppingView').classList.toggle('hidden', state.activeView !== 'shopping');
+  document.getElementById('paramsView').classList.toggle('hidden', state.activeView !== 'params');
+}
+
 function render() {
+  renderView();
   renderWeekTabs();
   renderDayGrid();
   populateForm();
@@ -406,6 +482,7 @@ function init() {
   if (!state.selectedDate && state.plan.length) {
     state.selectedDate = state.plan[0].date;
   }
+  document.getElementById('viewSelector').value = state.activeView;
   bindEvents();
   render();
 }
