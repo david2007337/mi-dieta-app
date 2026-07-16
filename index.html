@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,21 +10,21 @@
     <div class="app-shell">
       <header class="hero">
         <div>
-          <p class="eyebrow">Asistente de dieta inteligente</p>
+          <p class="eyebrow">Assistent de dieta intel·ligent</p>
           <h1>PlanNutri IA</h1>
-          <p class="hero-copy">Organiza tus comidas, recetas, la compra y tus parámetros para planificar hasta 4 semanas.</p>
+          <p class="hero-copy">Organitza els teus àpats, receptes, la compra i els paràmetres per planificar fins a 4 setmanes.</p>
         </div>
         <div class="hero-actions">
           <label class="nav-select">
             <span>Pantalla</span>
             <select id="viewSelector">
-              <option value="home">Inicio</option>
-              <option value="recipes">Recetas</option>
-              <option value="shopping">Lista de la compra</option>
-              <option value="params">Parámetros</option>
+              <option value="home">Inici</option>
+              <option value="recipes">Receptes</option>
+              <option value="shopping">Llista de la compra</option>
+              <option value="params">Paràmetres</option>
             </select>
           </label>
-          <button id="resetBtn" class="secondary-btn">Reiniciar ejemplo</button>
+          <button id="resetBtn" class="secondary-btn">Reiniciar exemple</button>
         </div>
       </header>
 
@@ -34,9 +34,9 @@
             <div class="section-header">
               <div>
                 <p class="eyebrow">Planificador</p>
-                <h2>Próximas 4 semanas</h2>
+                <h2>Properes 4 setmanes</h2>
               </div>
-              <div id="weekTabs" class="week-tabs"></div>
+              <select id="weekSelector" class="week-selector"></select>
             </div>
             <div id="dayGrid" class="day-grid"></div>
           </section>
@@ -44,65 +44,52 @@
           <section class="card editor-card">
             <div class="section-header">
               <div>
-                <p class="eyebrow">Detalle del día</p>
-                <h2 id="selectedDateLabel">Selecciona un día</h2>
+                <p class="eyebrow">Detall del dia</p>
+                <h2 id="selectedDateLabel">Selecciona un dia</h2>
               </div>
             </div>
 
             <form id="dayForm" class="day-form">
               <label>
-                Desayuno
+                Esmorzar
                 <select id="breakfastInput"></select>
               </label>
-
-              <label>
-                Merienda
-                <select id="snackInput"></select>
-              </label>
+              <p id="breakfastDescription" class="helper-text"></p>
 
               <div class="meal-block">
-                <h3>Comida</h3>
+                <h3>Merienda</h3>
+                <p class="helper-text">Sempre és la mateixa: 1 iogurt natural, 30 g d'avena, 1 fruita i 10 ametlles.</p>
+              </div>
+
+              <div class="meal-block">
+                <h3>Dinar</h3>
                 <label>
-                  Receta
+                  Recepta
                   <select id="lunchRecipeInput"></select>
                 </label>
-                <div class="macros-grid">
-                  <label>Pasta (g) <input id="lunchPasta" type="number" min="0" /></label>
-                  <label>Arroz (g) <input id="lunchRice" type="number" min="0" /></label>
-                  <label>Legumbres (g) <input id="lunchLegumes" type="number" min="0" /></label>
-                  <label>Quinoa (g) <input id="lunchQuinoa" type="number" min="0" /></label>
-                  <label>Verdura/ensalada (g) <input id="lunchVegetables" type="number" min="0" /></label>
-                  <label>Carne (g) <input id="lunchMeat" type="number" min="0" /></label>
-                </div>
+                <p class="helper-text">S'utilitza la recepta seleccionada i els paràmetres de la pantalla de Paràmetres.</p>
               </div>
 
               <div class="meal-block">
-                <h3>Cena</h3>
+                <h3>Viena</h3>
                 <label>
-                  Receta
+                  Recepta
                   <select id="dinnerRecipeInput"></select>
                 </label>
-                <div class="macros-grid">
-                  <label>Pasta (g) <input id="dinnerPasta" type="number" min="0" /></label>
-                  <label>Arroz (g) <input id="dinnerRice" type="number" min="0" /></label>
-                  <label>Legumbres (g) <input id="dinnerLegumes" type="number" min="0" /></label>
-                  <label>Quinoa (g) <input id="dinnerQuinoa" type="number" min="0" /></label>
-                  <label>Verdura/ensalada (g) <input id="dinnerVegetables" type="number" min="0" /></label>
-                  <label>Carne (g) <input id="dinnerMeat" type="number" min="0" /></label>
-                </div>
+                <p class="helper-text">S'utilitza la recepta seleccionada i els paràmetres de la pantalla de Paràmetres.</p>
               </div>
 
               <label>
-                Postre
-                <input id="dessertInput" type="text" placeholder="Ej. Yogur con fruta" />
+                Postres
+                <input id="dessertInput" type="text" placeholder="Ex. iogurt amb fruita" />
               </label>
 
               <label>
-                Notas
-                <textarea id="notesInput" rows="3" placeholder="Ej. Mejor preparar con antelación"></textarea>
+                Notes
+                <textarea id="notesInput" rows="3" placeholder="Ex. Millor preparar amb antelació"></textarea>
               </label>
 
-              <button type="submit" class="primary-btn">Guardar día</button>
+              <button type="submit" class="primary-btn">Guardar dia</button>
             </form>
           </section>
         </div>
@@ -113,28 +100,28 @@
           <section class="card">
             <div class="section-header">
               <div>
-                <p class="eyebrow">Recetario</p>
-                <h2>Recetas por tipo</h2>
+                <p class="eyebrow">Repertori</p>
+                <h2>Receptes per tipus</h2>
               </div>
               <select id="recipeFilter" class="filter-select">
-                <option value="all">Todas</option>
-                <option value="breakfast">Desayuno</option>
-                <option value="lunch">Comida</option>
+                <option value="all">Totes</option>
+                <option value="breakfast">Esmorzar</option>
+                <option value="lunch">Dinar</option>
                 <option value="snack">Merienda</option>
-                <option value="dinner">Cena</option>
+                <option value="dinner">Viena</option>
               </select>
             </div>
             <form id="recipeForm" class="recipe-form">
-              <input id="recipeName" type="text" placeholder="Nombre de la receta" required />
+              <input id="recipeName" type="text" placeholder="Nom de la recepta" required />
               <select id="recipeCategorySelect">
-                <option value="Desayuno">Desayuno</option>
-                <option value="Comida">Comida</option>
+                <option value="Desayuno">Esmorzar</option>
+                <option value="Comida">Dinar</option>
                 <option value="Merienda">Merienda</option>
-                <option value="Cena">Cena</option>
+                <option value="Cena">Viena</option>
               </select>
-              <textarea id="recipeIngredients" rows="3" placeholder="Ingredientes" required></textarea>
-              <textarea id="recipeSteps" rows="3" placeholder="Pasos" required></textarea>
-              <button type="submit" class="primary-btn">Añadir receta</button>
+              <textarea id="recipeIngredients" rows="3" placeholder="Ex. pasta integral 100g, tomàquet 80g, pollastre 120g" required></textarea>
+              <textarea id="recipeSteps" rows="3" placeholder="Passos" required></textarea>
+              <button type="submit" class="primary-btn">Afegir recepta</button>
             </form>
             <div id="recipeList" class="recipe-list"></div>
           </section>
@@ -142,14 +129,14 @@
           <section class="card">
             <div class="section-header">
               <div>
-                <p class="eyebrow">IA de recetas</p>
-                <h2>Ideas inteligentes</h2>
+                <p class="eyebrow">IA de receptes</p>
+                <h2>Idees intel·ligents</h2>
               </div>
             </div>
             <div class="ai-panel">
-              <p>Se basan en tus parámetros y en los gramos del día seleccionado para proponer recetas de comida y cena.</p>
+              <p>Es generen automàticament amb els teus paràmetres i s'adapten a la base, verdures i carn configurades.</p>
               <div id="aiSuggestions" class="suggestions-list"></div>
-              <button id="generateIdeasBtn" class="secondary-btn">Generar ideas</button>
+              <button id="generateIdeasBtn" class="secondary-btn">Generar idees</button>
             </div>
           </section>
         </div>
@@ -161,7 +148,7 @@
             <div class="section-header">
               <div>
                 <p class="eyebrow">Compra</p>
-                <h2>Lista automática</h2>
+                <h2>Llista automàtica</h2>
               </div>
             </div>
             <div id="shoppingList" class="shopping-list"></div>
@@ -174,20 +161,19 @@
           <section class="card">
             <div class="section-header">
               <div>
-                <p class="eyebrow">Parámetros</p>
-                <h2>Gramos guía para recetas</h2>
+                <p class="eyebrow">Paràmetres</p>
+                <h2>Grams guia per a receptes</h2>
               </div>
             </div>
             <form id="paramsForm" class="params-form">
               <div class="macros-grid">
-                <label>Pasta (g) <input id="paramPasta" type="number" min="0" /></label>
-                <label>Arroz (g) <input id="paramRice" type="number" min="0" /></label>
-                <label>Legumbres (g) <input id="paramLegumes" type="number" min="0" /></label>
-                <label>Quinoa (g) <input id="paramQuinoa" type="number" min="0" /></label>
-                <label>Verdura/ensalada (g) <input id="paramVegetables" type="number" min="0" /></label>
+                <label>Base (pasta/arròs/llenties/quinoa) (g) <input id="paramBase" type="number" min="0" /></label>
+                <label>Verdura/amanida (g) <input id="paramVegetables" type="number" min="0" /></label>
                 <label>Carne (g) <input id="paramMeat" type="number" min="0" /></label>
+                <label>Pa per al descompte (g) <input id="paramBreadGrams" type="number" min="0" /></label>
+                <label>Complement <input id="paramComplement" type="text" placeholder="Ex. salsa de tomàquet" /></label>
               </div>
-              <button type="submit" class="primary-btn">Guardar parámetros</button>
+              <button type="submit" class="primary-btn">Guardar paràmetres</button>
             </form>
           </section>
         </div>

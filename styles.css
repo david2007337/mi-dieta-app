@@ -7,6 +7,8 @@
   --muted: #8ea3c2;
   --accent: #4dd1b5;
   --accent-2: #6b8cff;
+  --good: #7ce5b7;
+  --warning: #ffbb66;
 }
 
 * { box-sizing: border-box; }
@@ -93,32 +95,8 @@ button, input, select, textarea {
   margin-bottom: 14px;
 }
 
-.week-tabs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.week-btn, .secondary-btn, .primary-btn, .apply-btn {
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.week-btn:hover, .secondary-btn:hover, .primary-btn:hover, .apply-btn:hover {
-  transform: translateY(-1px);
-}
-
-.week-btn {
-  background: var(--panel-2);
-  color: var(--text);
-  padding: 8px 12px;
-}
-
-.week-btn.active {
-  background: var(--accent);
-  color: var(--bg);
+.week-selector {
+  min-width: 110px;
 }
 
 .day-grid {
@@ -147,6 +125,48 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.preset-block {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(255,255,255,0.03);
+}
+
+.preset-label {
+  margin-bottom: 6px;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mini-btn {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(77, 209, 181, 0.16);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(107, 140, 255, 0.16);
+  color: var(--text);
+  font-size: 0.86rem;
 }
 
 label {
@@ -189,6 +209,12 @@ input, select, textarea {
 
 .meal-block h3 { margin: 0 0 10px; }
 
+.helper-text {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
 .macros-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -212,6 +238,14 @@ input, select, textarea {
   border-radius: 14px;
   padding: 12px;
 }
+
+.recipe-status {
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.recipe-status.good { color: var(--good); }
+.recipe-status.warn { color: var(--warning); }
 
 .apply-btn {
   background: rgba(77, 209, 181, 0.16);

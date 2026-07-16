@@ -1,68 +1,77 @@
 const STORAGE_KEY = 'planNutriStateV1';
 
 const breakfastOptions = [
-  'Avena con fruta',
-  'Yogur natural con frutos secos',
-  'Tortilla de claras',
-  'Tostadas con hummus',
-  'Bowl de yogur y granola'
+  'Esmorzar típic',
+  'Esmorzar esportiu'
 ];
 
 const snackOptions = [
-  'Fruta fresca',
-  'Yogur',
-  'Puñado de frutos secos',
-  'Tortitas de hummus',
-  'Batido de proteína'
+  '1 iogurt natural, 30 g d\'avena, 1 fruita i 10 ametlles'
 ];
 
 const baseRecipes = [
   {
     name: 'Pasta integral con tomate y pollo',
     category: 'Comida',
-    ingredients: ['pasta integral', 'tomate', 'pollo', 'espinacas', 'aceite de oliva'],
+    ingredients: [
+      { name: 'pasta integral', grams: 100 },
+      { name: 'tomate', grams: 80 },
+      { name: 'pollo', grams: 120 },
+      { name: 'espinacas', grams: 80 }
+    ],
     steps: 'Cocina la pasta y saltea el pollo con tomate y espinacas.'
   },
   {
     name: 'Arroz con garbanzos y verduras',
     category: 'Comida',
-    ingredients: ['arroz', 'garbanzos', 'pimiento', 'cebolla', 'calabacín'],
+    ingredients: [
+      { name: 'arroz', grams: 120 },
+      { name: 'garbanzos', grams: 120 },
+      { name: 'pimiento', grams: 80 },
+      { name: 'calabacín', grams: 80 }
+    ],
     steps: 'Cocina el arroz y añade garbanzos y verduras salteadas.'
   },
   {
     name: 'Quinoa con salmón y ensalada',
     category: 'Cena',
-    ingredients: ['quinoa', 'salmón', 'lechuga', 'pepino', 'aguacate'],
+    ingredients: [
+      { name: 'quinoa', grams: 100 },
+      { name: 'salmón', grams: 140 },
+      { name: 'lechuga', grams: 80 },
+      { name: 'aguacate', grams: 80 }
+    ],
     steps: 'Cocina la quinoa y acompaña con salmón y ensalada.'
   },
   {
     name: 'Lentejas con verduras y carne magra',
     category: 'Cena',
-    ingredients: ['lentejas', 'carne magra', 'zanahoria', 'apio', 'cebolla'],
+    ingredients: [
+      { name: 'lentejas', grams: 120 },
+      { name: 'carne magra', grams: 140 },
+      { name: 'zanahoria', grams: 80 },
+      { name: 'apio', grams: 60 }
+    ],
     steps: 'Cuece las lentejas y añade carne magra y verduras.'
-  },
-  {
-    name: 'Ensalada de garbanzos con pollo',
-    category: 'Comida',
-    ingredients: ['garbanzos', 'pollo', 'tomate', 'pepino', 'aceitunas'],
-    steps: 'Mezcla todos los ingredientes y aliña con aceite y limón.'
-  },
-  {
-    name: 'Tacos de pavo con quinoa',
-    category: 'Cena',
-    ingredients: ['pavo', 'quinoa', 'lechuga', 'tomate', 'aguacate'],
-    steps: 'Cocina la quinoa y rellena con pavo y verduras.'
   },
   {
     name: 'Avena con yogur y fruta',
     category: 'Desayuno',
-    ingredients: ['avena', 'yogur', 'plátano', 'frutos rojos'],
+    ingredients: [
+      { name: 'avena', grams: 70 },
+      { name: 'yogur', grams: 150 },
+      { name: 'plátano', grams: 100 }
+    ],
     steps: 'Mezcla la avena con yogur y añade la fruta.'
   },
   {
     name: 'Tostadas con hummus y tomate',
     category: 'Merienda',
-    ingredients: ['pan integral', 'hummus', 'tomate', 'aceite de oliva'],
+    ingredients: [
+      { name: 'pan integral', grams: 80 },
+      { name: 'hummus', grams: 60 },
+      { name: 'tomate', grams: 80 }
+    ],
     steps: 'Tuesta el pan y añade hummus y tomate.'
   }
 ];
@@ -73,14 +82,17 @@ const defaultState = {
   activeView: 'home',
   recipeFilter: 'all',
   plan: [],
-  recipes: baseRecipes,
+  recipes: [],
   parameters: {
-    pasta: 100,
-    arroz: 120,
-    legumbres: 120,
-    quinoa: 100,
-    verdura: 200,
-    carne: 140
+    base: 120,
+    vegetables: 200,
+    meat: 140,
+    breadGrams: 100,
+    complement: 'salsa de tomate'
+  },
+  mealPresets: {
+    breakfast: [...breakfastOptions],
+    snack: [...snackOptions]
   }
 };
 
@@ -90,7 +102,7 @@ function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) {
     const plan = buildInitialPlan();
-    return { ...defaultState, plan, recipes: baseRecipes.slice(), selectedDate: plan[0]?.date || null };
+    return { ...defaultState, plan, recipes: baseRecipes.map(normalizeRecipe), selectedDate: plan[0]?.date || null };
   }
 
   try {
@@ -99,19 +111,48 @@ function loadState() {
       ...defaultState,
       ...parsed,
       plan: parsed.plan?.length ? parsed.plan : buildInitialPlan(),
-      recipes: parsed.recipes?.length ? parsed.recipes : baseRecipes.slice(),
+      recipes: (parsed.recipes || baseRecipes).map(normalizeRecipe),
       parameters: { ...defaultState.parameters, ...(parsed.parameters || {}) },
+      mealPresets: {
+        breakfast: [...(parsed.mealPresets?.breakfast || defaultState.mealPresets.breakfast)],
+        snack: [...(parsed.mealPresets?.snack || defaultState.mealPresets.snack)]
+      },
       selectedDate: parsed.selectedDate || (parsed.plan?.[0]?.date || null)
     };
   } catch (error) {
     console.error('No se pudo cargar el estado', error);
     const plan = buildInitialPlan();
-    return { ...defaultState, plan, recipes: baseRecipes.slice(), selectedDate: plan[0]?.date || null };
+    return { ...defaultState, plan, recipes: baseRecipes.map(normalizeRecipe), selectedDate: plan[0]?.date || null };
   }
 }
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function normalizeIngredient(item) {
+  if (!item) return { name: '', grams: 0 };
+  if (typeof item === 'string') {
+    const trimmed = item.trim();
+    const match = trimmed.match(/^(.*?)\s+(\d+(?:\.\d+)?)\s*g$/i);
+    if (match) {
+      return { name: match[1].trim(), grams: Number(match[2]) };
+    }
+    return { name: trimmed, grams: 0 };
+  }
+  return { name: item.name || item.ingredient || '', grams: Number(item.grams || 0) };
+}
+
+function normalizeRecipe(recipe) {
+  return {
+    ...recipe,
+    ingredients: (recipe.ingredients || []).map(normalizeIngredient).filter((ingredient) => ingredient.name)
+  };
+}
+
+function formatIngredient(item) {
+  if (!item || !item.name) return '';
+  return item.grams > 0 ? `${item.name} (${item.grams}g)` : item.name;
 }
 
 function buildInitialPlan() {
@@ -125,9 +166,7 @@ function buildInitialPlan() {
       breakfast: '',
       snack: '',
       lunchRecipe: '',
-      lunchMacros: { pasta: 0, arroz: 0, legumbres: 0, quinoa: 0, verdura: 0, carne: 0 },
       dinnerRecipe: '',
-      dinnerMacros: { pasta: 0, arroz: 0, legumbres: 0, quinoa: 0, verdura: 0, carne: 0 },
       dessert: '',
       notes: ''
     };
@@ -136,7 +175,7 @@ function buildInitialPlan() {
 
 function formatDateLabel(dateString) {
   const date = new Date(dateString);
-  return date.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+  return date.toLocaleDateString('ca-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 function getEntryByDate(dateString) {
@@ -148,21 +187,17 @@ function getWeekEntries() {
   return state.plan.slice(start, start + 7);
 }
 
-function renderWeekTabs() {
-  const container = document.getElementById('weekTabs');
+function renderWeekSelector() {
+  const container = document.getElementById('weekSelector');
+  if (!container) return;
   container.innerHTML = '';
-
   for (let week = 0; week < 4; week += 1) {
-    const btn = document.createElement('button');
-    btn.className = `week-btn ${state.weekIndex === week ? 'active' : ''}`;
-    btn.textContent = `Semana ${week + 1}`;
-    btn.addEventListener('click', () => {
-      state.weekIndex = week;
-      saveState();
-      render();
-    });
-    container.appendChild(btn);
+    const option = document.createElement('option');
+    option.value = week;
+    option.textContent = `Semana ${week + 1}`;
+    container.appendChild(option);
   }
+  container.value = state.weekIndex;
 }
 
 function renderDayGrid() {
@@ -170,15 +205,19 @@ function renderDayGrid() {
   container.innerHTML = '';
 
   const weekEntries = getWeekEntries();
+  if (!weekEntries.some((entry) => entry.date === state.selectedDate)) {
+    state.selectedDate = weekEntries[0]?.date || null;
+  }
+
   weekEntries.forEach((entry) => {
     const card = document.createElement('article');
     card.className = `day-card ${state.selectedDate === entry.date ? 'active' : ''}`;
     card.innerHTML = `
       <h3>${formatDateLabel(entry.date)}</h3>
-      <p><strong>Desayuno:</strong> ${entry.breakfast || 'Sin definir'}</p>
-      <p><strong>Merienda:</strong> ${entry.snack || 'Sin definir'}</p>
-      <p><strong>Comida:</strong> ${entry.lunchRecipe || 'Sin definir'}</p>
-      <p><strong>Cena:</strong> ${entry.dinnerRecipe || 'Sin definir'}</p>
+      <p><strong>Esmorzar:</strong> ${entry.breakfast || 'Sense definir'}</p>
+      <p><strong>Merienda:</strong> ${entry.snack || snackOptions[0]}</p>
+      <p><strong>Dinar:</strong> ${entry.lunchRecipe || 'Sense definir'}</p>
+      <p><strong>Viena:</strong> ${entry.dinnerRecipe || 'Sense definir'}</p>
     `;
     card.addEventListener('click', () => {
       state.selectedDate = entry.date;
@@ -189,18 +228,29 @@ function renderDayGrid() {
   });
 }
 
+function getMealPresets(type) {
+  return (state.mealPresets?.[type] || []).filter(Boolean);
+}
+
+function buildMealSelectOptions(type, selectedValue) {
+  const values = [...new Set([...(getMealPresets(type)), selectedValue].filter(Boolean))];
+  return ['<option value="">Sin definir</option>', ...values.map((value) => `<option value="${value}" ${selectedValue === value ? 'selected' : ''}>${value}</option>`)].join('');
+}
+
 function populateForm() {
   const entry = getEntryByDate(state.selectedDate);
   const selectedDateLabel = document.getElementById('selectedDateLabel');
-  selectedDateLabel.textContent = entry ? `Editar ${formatDateLabel(entry.date)}` : 'Selecciona un día';
+  selectedDateLabel.textContent = entry ? `Edita ${formatDateLabel(entry.date)}` : 'Selecciona un dia';
 
   const breakfastInput = document.getElementById('breakfastInput');
-  const snackInput = document.getElementById('snackInput');
   const lunchRecipeInput = document.getElementById('lunchRecipeInput');
   const dinnerRecipeInput = document.getElementById('dinnerRecipeInput');
+  const snackDisplay = document.getElementById('snackDisplay');
 
-  breakfastInput.innerHTML = breakfastOptions.map((value) => `<option value="${value}" ${entry?.breakfast === value ? 'selected' : ''}>${value}</option>`).join('');
-  snackInput.innerHTML = snackOptions.map((value) => `<option value="${value}" ${entry?.snack === value ? 'selected' : ''}>${value}</option>`).join('');
+  breakfastInput.innerHTML = buildMealSelectOptions('breakfast', entry?.breakfast || '');
+  if (snackDisplay) {
+    snackDisplay.textContent = entry?.snack || snackOptions[0];
+  }
 
   const recipeOptions = ['<option value="">Sin receta</option>', ...state.recipes.map((recipe) => `<option value="${recipe.name}" ${entry?.lunchRecipe === recipe.name ? 'selected' : ''}>${recipe.name}</option>`)].join('');
   lunchRecipeInput.innerHTML = recipeOptions;
@@ -211,30 +261,64 @@ function populateForm() {
     return full;
   });
 
-  document.getElementById('lunchPasta').value = entry?.lunchMacros?.pasta || 0;
-  document.getElementById('lunchRice').value = entry?.lunchMacros?.arroz || 0;
-  document.getElementById('lunchLegumes').value = entry?.lunchMacros?.legumbres || 0;
-  document.getElementById('lunchQuinoa').value = entry?.lunchMacros?.quinoa || 0;
-  document.getElementById('lunchVegetables').value = entry?.lunchMacros?.verdura || 0;
-  document.getElementById('lunchMeat').value = entry?.lunchMacros?.carne || 0;
-
-  document.getElementById('dinnerPasta').value = entry?.dinnerMacros?.pasta || 0;
-  document.getElementById('dinnerRice').value = entry?.dinnerMacros?.arroz || 0;
-  document.getElementById('dinnerLegumes').value = entry?.dinnerMacros?.legumbres || 0;
-  document.getElementById('dinnerQuinoa').value = entry?.dinnerMacros?.quinoa || 0;
-  document.getElementById('dinnerVegetables').value = entry?.dinnerMacros?.verdura || 0;
-  document.getElementById('dinnerMeat').value = entry?.dinnerMacros?.carne || 0;
-
   document.getElementById('dessertInput').value = entry?.dessert || '';
   document.getElementById('notesInput').value = entry?.notes || '';
 
-  document.getElementById('paramPasta').value = state.parameters.pasta;
-  document.getElementById('paramRice').value = state.parameters.arroz;
-  document.getElementById('paramLegumes').value = state.parameters.legumbres;
-  document.getElementById('paramQuinoa').value = state.parameters.quinoa;
-  document.getElementById('paramVegetables').value = state.parameters.verdura;
-  document.getElementById('paramMeat').value = state.parameters.carne;
+  document.getElementById('paramBase').value = state.parameters.base;
+  document.getElementById('paramVegetables').value = state.parameters.vegetables;
+  document.getElementById('paramMeat').value = state.parameters.meat;
+  document.getElementById('paramBreadGrams').value = state.parameters.breadGrams || 100;
+  document.getElementById('paramComplement').value = state.parameters.complement || '';
   document.getElementById('recipeFilter').value = state.recipeFilter;
+
+  const breakfastDescription = document.getElementById('breakfastDescription');
+  if (breakfastDescription) {
+    const breadGrams = Number(state.parameters.breadGrams || 0);
+    breakfastDescription.textContent = `Esmorzar típic: ${breadGrams} g de pa amb pernil dolç o salat i formatge, 1 got de llet semiseca. Esmorzar esportiu: igual que l'anterior però amb una fruita.`;
+  }
+}
+
+function categorizeIngredient(name) {
+  const lowered = (name || '').toLowerCase();
+  if (lowered.includes('pasta') || lowered.includes('arroz') || lowered.includes('legumbre') || lowered.includes('lenteja') || lowered.includes('garbanzo') || lowered.includes('quinoa') || lowered.includes('avena')) return 'base';
+  if (lowered.includes('verdura') || lowered.includes('ensalada') || lowered.includes('tomate') || lowered.includes('lechuga') || lowered.includes('pepino') || lowered.includes('espinaca') || lowered.includes('pimiento') || lowered.includes('zanahoria') || lowered.includes('calabacín') || lowered.includes('cebolla') || lowered.includes('aguacate')) return 'vegetables';
+  if (lowered.includes('carne') || lowered.includes('pollo') || lowered.includes('pavo') || lowered.includes('salmón') || lowered.includes('salmon') || lowered.includes('pescado') || lowered.includes('huevo') || lowered.includes('tofu')) return 'meat';
+  return 'other';
+}
+
+function getRecipeCompatibility(recipe) {
+  const totals = { base: 0, vegetables: 0, meat: 0 };
+  recipe.ingredients.forEach((ingredient) => {
+    const category = categorizeIngredient(ingredient.name);
+    if (category === 'base') totals.base += Number(ingredient.grams || 0);
+    if (category === 'vegetables') totals.vegetables += Number(ingredient.grams || 0);
+    if (category === 'meat') totals.meat += Number(ingredient.grams || 0);
+  });
+
+  const checks = [
+    {
+      label: 'Base',
+      total: totals.base,
+      target: state.parameters.base,
+      key: 'base'
+    },
+    {
+      label: 'Verdura',
+      total: totals.vegetables,
+      target: state.parameters.vegetables,
+      key: 'vegetables'
+    },
+    {
+      label: 'Carne',
+      total: totals.meat,
+      target: state.parameters.meat,
+      key: 'meat'
+    }
+  ];
+
+  const isAdecuada = checks.every((check) => check.target > 0 ? Math.abs(check.total - check.target) <= check.target * 0.2 : true);
+  const summary = checks.map((check) => `${check.label}: ${check.total}g / ${check.target}g`).join(' · ');
+  return { isAdecuada, summary };
 }
 
 function renderRecipeList() {
@@ -247,14 +331,21 @@ function renderRecipeList() {
     return recipe.category === map[state.recipeFilter];
   });
 
+  if (!filteredRecipes.length) {
+    container.innerHTML = '<p>Encara no hi ha receptes.</p>';
+    return;
+  }
+
   filteredRecipes.forEach((recipe) => {
     const item = document.createElement('div');
     item.className = 'recipe-item';
+    const compatibility = getRecipeCompatibility(recipe);
     item.innerHTML = `
       <strong>${recipe.name}</strong>
       <p>${recipe.category}</p>
-      <p><strong>Ingredientes:</strong> ${recipe.ingredients.join(', ')}</p>
+      <p><strong>Ingredientes:</strong> ${recipe.ingredients.map(formatIngredient).join(', ')}</p>
       <p>${recipe.steps}</p>
+      <p class="recipe-status ${compatibility.isAdecuada ? 'good' : 'warn'}">${compatibility.isAdecuada ? 'Adaptada als paràmetres' : 'No s\'adapta del tot als paràmetres'} · ${compatibility.summary}</p>
     `;
     container.appendChild(item);
   });
@@ -263,39 +354,36 @@ function renderRecipeList() {
 function buildShoppingList() {
   const items = new Map();
 
-  state.plan.forEach((entry) => {
-    const add = (name, amount = 1) => {
-      if (!name) return;
-      const normalized = name.trim().toLowerCase();
-      items.set(normalized, (items.get(normalized) || 0) + amount);
-    };
+  const add = (name, grams = 0, count = 1) => {
+    if (!name) return;
+    const normalized = name.trim().toLowerCase();
+    const existing = items.get(normalized) || { name: name.trim(), grams: 0, count: 0 };
+    existing.grams += Number(grams || 0);
+    existing.count += Number(count || 0);
+    items.set(normalized, existing);
+  };
 
-    if (entry.breakfast) add(entry.breakfast, 1);
-    if (entry.snack) add(entry.snack, 1);
-    if (entry.dessert) add(entry.dessert, 1);
+  state.plan.forEach((entry) => {
+    if (entry.breakfast) add(entry.breakfast, 0, 1);
+    if (entry.snack) add(entry.snack, 0, 1);
+    if (entry.dessert) add(entry.dessert, 0, 1);
 
     if (entry.lunchRecipe) {
       const recipe = state.recipes.find((item) => item.name === entry.lunchRecipe);
       if (recipe) {
-        recipe.ingredients.forEach((ingredient) => add(ingredient, 1));
-      } else {
-        add('verdura', 1);
-        add('carne', 1);
+        recipe.ingredients.forEach((ingredient) => add(ingredient.name, Number(ingredient.grams || 0), 1));
       }
     }
 
     if (entry.dinnerRecipe) {
       const recipe = state.recipes.find((item) => item.name === entry.dinnerRecipe);
       if (recipe) {
-        recipe.ingredients.forEach((ingredient) => add(ingredient, 1));
-      } else {
-        add('verdura', 1);
-        add('carne', 1);
+        recipe.ingredients.forEach((ingredient) => add(ingredient.name, Number(ingredient.grams || 0), 1));
       }
     }
   });
 
-  return Array.from(items.entries()).map(([name, cantidad]) => ({ name, cantidad }));
+  return Array.from(items.values()).map((item) => ({ name: item.name, grams: item.grams, count: item.count }));
 }
 
 function renderShoppingList() {
@@ -303,7 +391,7 @@ function renderShoppingList() {
   const list = buildShoppingList();
   container.innerHTML = '';
   if (!list.length) {
-    container.innerHTML = '<p>No hay productos aún.</p>';
+    container.innerHTML = '<p>Encara no hi ha productes.</p>';
     return;
   }
 
@@ -311,64 +399,69 @@ function renderShoppingList() {
   list.forEach((item) => {
     const row = document.createElement('div');
     row.className = 'shopping-item';
-    row.innerHTML = `<strong>${item.name}</strong><span>${item.cantidad} vez/veces en el plan</span>`;
+    const gramsText = item.grams > 0 ? `${item.grams}g acumulados` : '';
+    const countText = item.count > 1 ? `${item.count} veces` : `${item.count} vez`;
+    row.innerHTML = `<strong>${item.name}</strong><span>${[gramsText, `${countText} al pla`].filter(Boolean).join(' · ')}</span>`;
     fragment.appendChild(row);
   });
 
   container.appendChild(fragment);
 }
 
-function generateRecipeIdeas() {
-  const activeEntry = getEntryByDate(state.selectedDate);
-  const macros = {
-    pasta: Number(document.getElementById('lunchPasta').value || 0),
-    arroz: Number(document.getElementById('lunchRice').value || 0),
-    legumbres: Number(document.getElementById('lunchLegumes').value || 0),
-    quinoa: Number(document.getElementById('lunchQuinoa').value || 0),
-    verdura: Number(document.getElementById('lunchVegetables').value || 0),
-    carne: Number(document.getElementById('lunchMeat').value || 0)
+function buildSuggestedRecipe(title, category, baseName, meatName) {
+  const baseGrams = Number(state.parameters.base || 0);
+  const vegetablesGrams = Number(state.parameters.vegetables || 0);
+  const meatGrams = Number(state.parameters.meat || 0);
+  const complement = state.parameters.complement || 'complemento';
+
+  const ingredients = [
+    { name: baseName, grams: baseGrams },
+    { name: 'verdura', grams: vegetablesGrams },
+    { name: meatName, grams: meatGrams },
+    { name: complement, grams: 50 }
+  ];
+
+  return {
+    name: title,
+    category,
+    ingredients,
+    steps: `Prepara ${baseName} amb ${meatName} i verdures; afegeix ${complement} al final.`,
+    generated: true
   };
+}
 
-  const baseMacros = Object.keys(macros).reduce((acc, key) => {
-    acc[key] = macros[key] || state.parameters[key === 'verdura' ? 'verdura' : key];
-    return acc;
-  }, {});
-
-  const ideas = [];
-  if ((baseMacros.pasta || 0) > 0) {
-    ideas.push({ title: 'Pasta con tomate y carne magra', description: 'Rápida, equilibrada y muy útil si quieres proteína y carbohidratos.' });
-  }
-  if ((baseMacros.arroz || 0) > 0 && (baseMacros.legumbres || 0) > 0) {
-    ideas.push({ title: 'Arroz de garbanzos con verduras', description: 'Ideal para una comida contundente y sencilla.' });
-  }
-  if ((baseMacros.quinoa || 0) > 0 && (baseMacros.carne || 0) > 0) {
-    ideas.push({ title: 'Quinoa bowl con pollo o pavo', description: 'Perfecta si buscas un menú ligero y alto en proteína.' });
-  }
-  if ((baseMacros.verdura || 0) > 0 && (baseMacros.legumbres || 0) > 0) {
-    ideas.push({ title: 'Lentejas o garbanzos con ensalada', description: 'Muy buena para un menú saludable y fácil de repetir.' });
-  }
-  if (!ideas.length) {
-    ideas.push({ title: 'Ensalada de quinoa con aguacate', description: 'Muy adaptada si todavía no tienes una base definida.' });
-    ideas.push({ title: 'Pasta con verduras y yogur griego', description: 'Plato energizante y simple.' });
-  }
+function generateRecipeIdeas() {
+  const ideas = [
+    buildSuggestedRecipe('Pasta con tomate y pollo', 'Comida', 'pasta integral', 'pollo'),
+    buildSuggestedRecipe('Arroz de garbanzos y verduras', 'Comida', 'arroz', 'garbanzos'),
+    buildSuggestedRecipe('Quinoa bowl con carne', 'Cena', 'quinoa', 'carne magra')
+  ];
 
   const container = document.getElementById('aiSuggestions');
   container.innerHTML = '';
-  ideas.slice(0, 3).forEach((idea) => {
+  ideas.forEach((idea) => {
     const item = document.createElement('div');
     item.className = 'suggestion-item';
+    const compatibility = getRecipeCompatibility(idea);
     item.innerHTML = `
-      <strong>${idea.title}</strong>
-      <p>${idea.description}</p>
+      <strong>${idea.name}</strong>
+      <p>${idea.steps}</p>
+      <p class="recipe-status ${compatibility.isAdecuada ? 'good' : 'warn'}">${compatibility.summary}</p>
       <button class="apply-btn" type="button">Aplicar</button>
     `;
     item.querySelector('button').addEventListener('click', () => {
-      if (!activeEntry) return;
-      const recipeName = idea.title;
+      const entry = getEntryByDate(state.selectedDate);
+      if (!entry) return;
+      const recipeName = idea.name;
       document.getElementById('lunchRecipeInput').value = recipeName;
-      document.getElementById('notesInput').value = `Idea sugerida: ${recipeName}`;
-      activeEntry.lunchRecipe = recipeName;
-      activeEntry.notes = `Idea sugerida: ${recipeName}`;
+      document.getElementById('notesInput').value = `Idea suggerida: ${recipeName}`;
+      entry.lunchRecipe = recipeName;
+      entry.notes = `Idea suggerida: ${recipeName}`;
+      const existing = state.recipes.find((recipe) => recipe.name === recipeName);
+      if (!existing) {
+        state.recipes.unshift(normalizeRecipe(idea));
+        state.recipes = state.recipes.slice(0, 12);
+      }
       saveState();
       render();
     });
@@ -383,31 +476,21 @@ function bindEvents() {
     renderView();
   });
 
+  document.getElementById('weekSelector').addEventListener('change', (event) => {
+    state.weekIndex = Number(event.target.value) || 0;
+    saveState();
+    render();
+  });
+
   document.getElementById('dayForm').addEventListener('submit', (event) => {
     event.preventDefault();
     const entry = getEntryByDate(state.selectedDate);
     if (!entry) return;
 
     entry.breakfast = document.getElementById('breakfastInput').value;
-    entry.snack = document.getElementById('snackInput').value;
+    entry.snack = snackOptions[0];
     entry.lunchRecipe = document.getElementById('lunchRecipeInput').value;
     entry.dinnerRecipe = document.getElementById('dinnerRecipeInput').value;
-    entry.lunchMacros = {
-      pasta: Number(document.getElementById('lunchPasta').value || 0),
-      arroz: Number(document.getElementById('lunchRice').value || 0),
-      legumbres: Number(document.getElementById('lunchLegumes').value || 0),
-      quinoa: Number(document.getElementById('lunchQuinoa').value || 0),
-      verdura: Number(document.getElementById('lunchVegetables').value || 0),
-      carne: Number(document.getElementById('lunchMeat').value || 0)
-    };
-    entry.dinnerMacros = {
-      pasta: Number(document.getElementById('dinnerPasta').value || 0),
-      arroz: Number(document.getElementById('dinnerRice').value || 0),
-      legumbres: Number(document.getElementById('dinnerLegumes').value || 0),
-      quinoa: Number(document.getElementById('dinnerQuinoa').value || 0),
-      verdura: Number(document.getElementById('dinnerVegetables').value || 0),
-      carne: Number(document.getElementById('dinnerMeat').value || 0)
-    };
     entry.dessert = document.getElementById('dessertInput').value;
     entry.notes = document.getElementById('notesInput').value;
 
@@ -415,18 +498,26 @@ function bindEvents() {
     render();
   });
 
+
   document.getElementById('recipeForm').addEventListener('submit', (event) => {
     event.preventDefault();
+    const ingredientsText = document.getElementById('recipeIngredients').value;
+    const ingredients = ingredientsText
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map(normalizeIngredient);
+
     const newRecipe = {
       name: document.getElementById('recipeName').value.trim(),
       category: document.getElementById('recipeCategorySelect').value,
-      ingredients: document.getElementById('recipeIngredients').value.split(',').map((item) => item.trim()).filter(Boolean),
+      ingredients,
       steps: document.getElementById('recipeSteps').value.trim()
     };
 
     if (!newRecipe.name || !newRecipe.category || !newRecipe.ingredients.length || !newRecipe.steps) return;
 
-    state.recipes.unshift(newRecipe);
+    state.recipes.unshift(normalizeRecipe(newRecipe));
     state.recipes = state.recipes.slice(0, 12);
     saveState();
     render();
@@ -442,12 +533,11 @@ function bindEvents() {
   document.getElementById('paramsForm').addEventListener('submit', (event) => {
     event.preventDefault();
     state.parameters = {
-      pasta: Number(document.getElementById('paramPasta').value || 0),
-      arroz: Number(document.getElementById('paramRice').value || 0),
-      legumbres: Number(document.getElementById('paramLegumes').value || 0),
-      quinoa: Number(document.getElementById('paramQuinoa').value || 0),
-      verdura: Number(document.getElementById('paramVegetables').value || 0),
-      carne: Number(document.getElementById('paramMeat').value || 0)
+      base: Number(document.getElementById('paramBase').value || 0),
+      vegetables: Number(document.getElementById('paramVegetables').value || 0),
+      meat: Number(document.getElementById('paramMeat').value || 0),
+      breadGrams: Number(document.getElementById('paramBreadGrams').value || 0),
+      complement: document.getElementById('paramComplement').value.trim()
     };
     saveState();
     render();
@@ -471,7 +561,7 @@ function renderView() {
 
 function render() {
   renderView();
-  renderWeekTabs();
+  renderWeekSelector();
   renderDayGrid();
   populateForm();
   renderRecipeList();
